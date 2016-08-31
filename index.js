@@ -178,7 +178,7 @@ module.exports = function(opt) {
       warnings.map(warning => gutil.log('-',gutil.colors.yellow(`${warning}\n`)));
     }
 
-    gutil.log(`${pkg.name}: ${gutil.colors.magenta(totalFileHashed)} file renamed`);
+    gutil.log(`${pkg.name}: ${gutil.colors.magenta(totalFileHashed)} files renamed`);
     cb();
   }
 
