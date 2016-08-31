@@ -1,6 +1,6 @@
 {
   "version": "0.1.0",
-  "name": "gulp-rev-replace",
+  "name": "gulp-rev-recursive",
   "description": "",
   "author": {
     "email": "giovanni.bruno@soluzionifutura.it",

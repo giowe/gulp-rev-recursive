@@ -1,3 +1,3 @@
-# gulp-rev-replace
+# gulp-rev-recursive
 
 to do
