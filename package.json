@@ -1,6 +1,6 @@
 {
   "version": "0.1.0",
-  "name": "gulp-hrr",
+  "name": "gulp-rev-replace",
   "description": "",
   "author": {
     "email": "giovanni.bruno@soluzionifutura.it",
@@ -24,5 +24,5 @@
   "repository": {
     "type": "git",
     "url": "git://github.com/rschmukler/gulp-insert.git"
-  },
+  }
 }
