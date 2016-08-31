@@ -1,0 +1,28 @@
+{
+  "version": "0.1.0",
+  "name": "gulp-hrr",
+  "description": "",
+  "author": {
+    "email": "giovanni.bruno@soluzionifutura.it",
+    "name": "Giovanni Bruno"
+  },
+  "bugs": {
+    "url": "https://github.com/rschmukler/gulp-insert/issues"
+  },
+  "dependencies": {
+    "gulp-util": "^3.0.7",
+    "mime-types": "^2.1.11",
+    "through2": "^2.0.1"
+  },
+  "directories": {},
+  "keywords": [
+    "gulp",
+    "gulpplugin"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/rschmukler/gulp-insert.git"
+  },
+}
