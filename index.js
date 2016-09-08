@@ -129,7 +129,7 @@ function setUniqueIds() {
 
 module.exports = function(opt) {
   opt = opt || {};
-  opt.ignore  = opt.ignore  || ['*.html'];
+  opt.ignore  = opt.ignore  || ['**/*.html'];
   opt.verbose = opt.verbose || verbose;
 
   verbose = opt.verbose;
