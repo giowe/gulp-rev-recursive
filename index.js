@@ -4,9 +4,9 @@ const path      = require('path');
 const gutil     = require('gulp-util');
 const through   = require('through2');
 const crypto    = require('crypto');
+const minimatch = require('minimatch');
 const mime      = require('mime-types');
 const typo      = require('./typo');
-const minimatch = require('./minimatch');
 const pkg       = require('./package.json');
 
 const fileMap = [];
