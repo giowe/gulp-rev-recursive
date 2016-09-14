@@ -35,7 +35,7 @@ function setReplacedContent(fileWrapper, parentFiles) {
   let modified = false;
   fileMap.map(fileWrapperToMatch => {
     if (!fileWrapperToMatch.ignore) {
-      const re = new RegExp(fileWrapperToMatch.uniqueId, 'g');
+      const re = new RegExp(fileWrapperToMatch.uniqueId.replace(/\./g, '\\.'), 'g');
       const matches = contents.match(re) || [];
       if (matches.length) {
 
