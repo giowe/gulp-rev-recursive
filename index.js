@@ -1,12 +1,13 @@
 "use strict";
 
-const path    = require('path');
-const gutil   = require('gulp-util');
-const through = require('through2');
-const crypto  = require('crypto');
-const mime    = require('mime-types');
-const typo    = require('./typo');
-const pkg     = require('./package.json');
+const path      = require('path');
+const gutil     = require('gulp-util');
+const through   = require('through2');
+const crypto    = require('crypto');
+const minimatch = require('minimatch');
+const mime      = require('mime-types');
+const typo      = require('./typo');
+const pkg       = require('./package.json');
 
 const fileMap = [];
 const warnings = [];
@@ -128,7 +129,7 @@ function setUniqueIds() {
 
 module.exports = function(opt) {
   opt = opt || {};
-  opt.ignore  = opt.ignore  || ['html'];
+  opt.ignore  = opt.ignore  || ['**/*.html'];
   opt.verbose = opt.verbose || verbose;
 
   verbose = opt.verbose;
@@ -144,8 +145,17 @@ module.exports = function(opt) {
     //generate fileMap ignoring files with opt.ignore extensions
     const extension = path.extname(file.path).substr(1).toLowerCase();
     const type = mime.lookup(extension).split('/')[0];
+
+    let ignore = false;
+    for (let i = 0; i < opt.ignore.length; i++) {
+      if (minimatch(file.relative, opt.ignore[i])) {
+        ignore = true;
+        break;
+      }
+    }
+
     const fileWrapper = {
-      ignore: opt.ignore.indexOf(extension) !== -1,
+      ignore: ignore,
       uniqueId: null,
       hashedName: null,
       name: path.basename(file.relative),
