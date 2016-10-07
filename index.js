@@ -144,7 +144,8 @@ module.exports = function(opt) {
 
     //generate fileMap ignoring files with opt.ignore extensions
     const extension = path.extname(file.path).substr(1).toLowerCase();
-    const type = mime.lookup(extension).split('/')[0];
+    const mime = mime.lookup(extension);
+    const type = mime? mime.split('/')[0] : null;
 
     let ignore = false;
     for (let i = 0; i < opt.ignore.length; i++) {
