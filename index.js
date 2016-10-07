@@ -19,7 +19,7 @@ function hashFileName(fileWrapper) {
   const valueToHash = fileWrapper.name + file.contents;
   const hash = crypto.createHash('sha256').update(valueToHash).digest('hex').substr(0,10);
   const nameNoExt = path.parse(file.relative).name;
-  const hasedName = `${nameNoExt}_${(hash)}.${fileWrapper.extension}`;
+  const hasedName = `${nameNoExt}_${(hash)}${fileWrapper.extension}`;
   fileWrapper.hashedName = hasedName;
   file.path = path.join(path.dirname(file.path), hasedName);
   totalFileHashed ++;
@@ -144,8 +144,8 @@ module.exports = function(opt) {
 
     //generate fileMap ignoring files with opt.ignore extensions
     const extension = path.extname(file.path).substr(1).toLowerCase();
-    const mime = mime.lookup(extension);
-    const type = mime? mime.split('/')[0] : null;
+    let type = mime.lookup(extension);
+    if (type) type = type.split('/')[0];
 
     let ignore = false;
     for (let i = 0; i < opt.ignore.length; i++) {
@@ -161,7 +161,7 @@ module.exports = function(opt) {
       hashedName: null,
       name: path.basename(file.relative),
       relative: file.relative,
-      extension: extension,
+      extension: extension? `.${extension}`: '',
       file: file
     };
 
