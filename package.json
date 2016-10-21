@@ -1,5 +1,5 @@
 {
-  "version": "0.2.6",
+  "version": "0.2.7",
   "name": "gulp-rev-recursive",
   "description": "",
   "author": {
@@ -7,7 +7,7 @@
     "name": "Giovanni Bruno"
   },
   "bugs": {
-    "url": "https://github.com/rschmukler/gulp-insert/issues"
+    "url": "https://github.com/giowe/gulp-rev-recursive/issues"
   },
   "dependencies": {
     "gulp-util": "^3.0.7",
@@ -24,6 +24,6 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/rschmukler/gulp-insert.git"
+    "url": "https://github.com/giowe/gulp-rev-recursive"
   }
 }
