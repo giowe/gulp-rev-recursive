@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const path      = require('path');
 const gutil     = require('gulp-util');
@@ -13,11 +13,12 @@ const fileMap = [];
 const warnings = [];
 let   verbose ;
 let   totalFileHashed = 0;
+let   customVariable = '';
 
 function hashFileName(fileWrapper) {
   const file = fileWrapper.file;
-  const valueToHash = fileWrapper.name + file.contents;
-  const hash = crypto.createHash('sha256').update(valueToHash).digest('hex').substr(0,10);
+  const valueToHash = fileWrapper.name + file.contents + customVariable;
+  const hash = crypto.createHash('sha256').update(valueToHash).digest('hex').substr(0, 10);
   const nameNoExt = path.parse(file.relative).name;
   const hasedName = `${nameNoExt}_${(hash)}${fileWrapper.extension}`;
   fileWrapper.hashedName = hasedName;
@@ -101,7 +102,7 @@ function setUniqueIds() {
       fileMap.map((fileWrapperB, index) => {
         if (fileWrapperA.name === fileWrapperB.name) {
           duplicated.indexes.push(index);
-          duplicated.splittedPaths.push(fileWrapperB.relative.split(path.sep))
+          duplicated.splittedPaths.push(fileWrapperB.relative.split(path.sep));
         }
       });
 
@@ -133,8 +134,9 @@ module.exports = function(opt) {
   opt.verbose = opt.verbose || verbose;
 
   verbose = opt.verbose;
+  customVariable = opt.customVariable;
 
-  if (verbose) gutil.log(gutil.colors.yellow(`-------------------------Hashing without inspection for audio, image, multipart and video file types-------------------------`));
+  if (verbose) gutil.log(gutil.colors.yellow('-------------------------Hashing without inspection for audio, image, multipart and video file types-------------------------'));
   function bufferContents(file, enc, cb) {
     // ignore empty files
     if (file.isNull()) {
@@ -156,13 +158,13 @@ module.exports = function(opt) {
     }
 
     const fileWrapper = {
-      ignore: ignore,
+      ignore,
       uniqueId: null,
       hashedName: null,
       name: path.basename(file.relative),
       relative: file.relative,
       extension: extension? `.${extension}`: '',
-      file: file
+      file
     };
 
 
@@ -186,7 +188,7 @@ module.exports = function(opt) {
 
     if (warnings.length) {
       gutil.log(gutil.colors.yellow('WARNINGS:'));
-      warnings.map(warning => gutil.log('-',gutil.colors.yellow(`${warning}\n`)));
+      warnings.map(warning => gutil.log('-', gutil.colors.yellow(`${warning}\n`)));
     }
 
     gutil.log(`${pkg.name}: ${gutil.colors.magenta(totalFileHashed)} files renamed`);
