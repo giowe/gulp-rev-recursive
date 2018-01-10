@@ -1,13 +1,11 @@
-'use strict';
-
-const path      = require('path');
-const gutil     = require('gulp-util');
-const through   = require('through2');
-const crypto    = require('crypto');
+const path = require('path');
+const gutil = require('gulp-util');
+const through = require('through2');
+const crypto = require('crypto');
 const minimatch = require('minimatch');
-const mime      = require('mime-types');
-const typo      = require('./typo');
-const pkg       = require('./package.json');
+const mime = require('mime-types');
+const typo = require('./typo');
+const pkg = require('./package.json');
 
 const fileMap = [];
 const warnings = [];
@@ -16,32 +14,32 @@ let   totalFileHashed = 0;
 let   customVariable = '';
 
 function hashFileName(fileWrapper) {
-  const file = fileWrapper.file;
-  const valueToHash = fileWrapper.name + file.contents + customVariable;
+  const { file, name, relative } = fileWrapper;
+  const valueToHash = name + file.contents + customVariable;
   const hash = crypto.createHash('sha256').update(valueToHash).digest('hex').substr(0, 10);
   const nameNoExt = path.parse(file.relative).name;
   const hasedName = `${nameNoExt}_${(hash)}${fileWrapper.extension}`;
   fileWrapper.hashedName = hasedName;
+  fileWrapper.hashedRelative = relative.replace(name, hasedName);
   file.path = path.join(path.dirname(file.path), hasedName);
   totalFileHashed ++;
 
   return hasedName;
 }
 
-function setReplacedContent(fileWrapper, parentFiles) {
-  parentFiles = parentFiles || [fileWrapper];
+function setReplacedContent(fileWrapper, parentFiles = [fileWrapper]) {
   const indent = typo.repeat('\t', parentFiles.length -1);
   if (verbose && parentFiles.length === 1) gutil.log('\n');
   if (verbose) gutil.log(gutil.colors.yellow(`${indent}-------------------------Inspecting ${fileWrapper.name}-------------------------`));
   let contents = fileWrapper.file.contents.toString();
   let modified = false;
-  fileMap.map(fileWrapperToMatch => {
+  fileMap.forEach(fileWrapperToMatch => {
     if (!fileWrapperToMatch.ignore) {
       const re = new RegExp(fileWrapperToMatch.uniqueId.replace(/\./g, '\\.'), 'g');
       const matches = contents.match(re) || [];
       if (matches.length) {
 
-        // evitare ricorsioni
+        // avoid infinite recursion
         let recursion = false;
         for (let i = 0; i < parentFiles.length; i++) {
           const parentFileWrapper = parentFiles[i];
@@ -128,8 +126,7 @@ function setUniqueIds() {
   });
 }
 
-module.exports = function(opt) {
-  opt = opt || {};
+module.exports = (opt = {}, finalCallback) => {
   opt.ignore  = opt.ignore  || ['**/*.html'];
   opt.verbose = opt.verbose || verbose;
 
@@ -163,6 +160,7 @@ module.exports = function(opt) {
       hashedName: null,
       name: path.basename(file.relative),
       relative: file.relative,
+      hashedRelative: null,
       extension: extension? `.${extension}`: '',
       file
     };
@@ -174,16 +172,16 @@ module.exports = function(opt) {
     }
 
     fileMap.push(fileWrapper);
-
     cb();
   }
 
-  function endStream(cb) {
+  function endStream() {
     setUniqueIds();
 
-    fileMap.map((fileWrapper) => {
+    const files = fileMap.map((fileWrapper) => {
       if (!fileWrapper.hashedName) setReplacedContent(fileWrapper);
       this.push(fileWrapper.file);
+      return fileWrapper;
     });
 
     if (warnings.length) {
@@ -192,8 +190,10 @@ module.exports = function(opt) {
     }
 
     gutil.log(`${pkg.name}: ${gutil.colors.magenta(totalFileHashed)} files renamed`);
-    cb();
+
+    if (typeof finalCallback === 'function') finalCallback(files);
   }
 
   return through.obj(bufferContents, endStream);
+
 };
