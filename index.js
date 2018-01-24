@@ -33,46 +33,51 @@ function setReplacedContent(fileWrapper, parentFiles = [fileWrapper]) {
   if (verbose) gutil.log(gutil.colors.yellow(`${indent}-------------------------Inspecting ${fileWrapper.name}-------------------------`));
   let contents = fileWrapper.file.contents.toString();
   let modified = false;
-  fileMap.forEach(fileWrapperToMatch => {
-    if (!fileWrapperToMatch.ignore) {
-      const re = new RegExp(fileWrapperToMatch.uniqueId.replace(/\./g, '\\.'), 'g');
-      const matches = contents.match(re) || [];
-      if (matches.length) {
 
-        // avoid infinite recursion
-        let recursion = false;
-        for (let i = 0; i < parentFiles.length; i++) {
-          const parentFileWrapper = parentFiles[i];
-          if (parentFileWrapper.uniqueId === fileWrapperToMatch.uniqueId) {
-            const warning = `Recursion detected in file ${fileWrapperToMatch.name}: ${matches}`;
-            warnings.push(warning);
-            if (verbose) gutil.log(gutil.colors.red(`${indent}${warning}`));
-            recursion = true;
-            break;
+  if (!fileWrapper.hashIgnoringContent) {
+    fileMap.forEach(fileWrapperToMatch => {
+      if (!fileWrapperToMatch.ignore) {
+        const re = new RegExp(fileWrapperToMatch.uniqueId.replace(/\./g, '\\.'), 'g');
+        const matches = contents.match(re) || [];
+        if (matches.length) {
+
+          // avoid infinite recursion
+          let recursion = false;
+          for (let i = 0; i < parentFiles.length; i++) {
+            const parentFileWrapper = parentFiles[i];
+            if (parentFileWrapper.uniqueId === fileWrapperToMatch.uniqueId) {
+              const warning = `Recursion detected in file ${fileWrapperToMatch.name}: ${matches}`;
+              warnings.push(warning);
+              if (verbose) gutil.log(gutil.colors.red(`${indent}${warning}`));
+              recursion = true;
+              break;
+            }
+          }
+
+          if (!fileWrapperToMatch.hashedName && !recursion) {
+            if (verbose) gutil.log(gutil.colors.magenta(`${indent}${typo.fixed(fileWrapperToMatch.name, 35)} => ???`));
+            const _parentFiles = parentFiles.slice(0);
+            _parentFiles.push(fileWrapperToMatch);
+            setReplacedContent(fileWrapperToMatch, _parentFiles);
+          }
+
+          if (!recursion) {
+            contents = contents.replace(re, path.join(path.dirname(fileWrapperToMatch.uniqueId), fileWrapperToMatch.hashedName));
+            modified = true;
+            if (verbose) gutil.log(gutil.colors.white(`${indent}${typo.fixed(fileWrapperToMatch.uniqueId, 35)} => ${fileWrapperToMatch.hashedName}`));
           }
         }
-
-        if (!fileWrapperToMatch.hashedName && !recursion) {
-          if (verbose) gutil.log(gutil.colors.magenta(`${indent}${typo.fixed(fileWrapperToMatch.name, 35)} => ???`));
-          const _parentFiles = parentFiles.slice(0);
-          _parentFiles.push(fileWrapperToMatch);
-          setReplacedContent(fileWrapperToMatch, _parentFiles);
-        }
-
-        if (!recursion) {
-          contents = contents.replace(re, path.join(path.dirname(fileWrapperToMatch.uniqueId), fileWrapperToMatch.hashedName));
-          modified = true;
-          if (verbose) gutil.log(gutil.colors.white(`${indent}${typo.fixed(fileWrapperToMatch.uniqueId, 35)} => ${fileWrapperToMatch.hashedName}`));
-        }
       }
-    }
-  });
+    });
 
-  if (modified) {
-    fileWrapper.file.contents = new Buffer(contents);
-    if (verbose) gutil.log(gutil.colors.yellow(`${indent}All mods saved.`));
+    if (modified) {
+      fileWrapper.file.contents = new Buffer(contents);
+      if (verbose) gutil.log(gutil.colors.yellow(`${indent}All mods saved.`));
+    } else {
+      if (verbose) gutil.log(gutil.colors.yellow(`${indent}Nothing to replace.`));
+    }
   } else {
-    if (verbose) gutil.log(gutil.colors.yellow(`${indent}Nothing to replace.`));
+    if (verbose) gutil.log(gutil.colors.yellow(`${indent}Hashing file name but ignoring content replacements.`));
   }
 
   if (!fileWrapper.ignore) {
@@ -127,7 +132,8 @@ function setUniqueIds() {
 }
 
 module.exports = (opt = {}, finalCallback) => {
-  opt.ignore  = opt.ignore  || ['**/*.html'];
+  opt.ignore = opt.ignore  || ['**/*.html'];
+  opt.hashIgnoringContent = opt.hashIgnoringContent || []
   opt.verbose = opt.verbose || verbose;
 
   verbose = opt.verbose;
@@ -154,8 +160,17 @@ module.exports = (opt = {}, finalCallback) => {
       }
     }
 
+    let hashIgnoringContent = false;
+    for (let i = 0; i < opt.hashIgnoringContent.length; i++) {
+      if (minimatch(file.relative, opt.hashIgnoringContent[i])) {
+        hashIgnoringContent = true;
+        break;
+      }
+    }
+
     const fileWrapper = {
       ignore,
+      hashIgnoringContent,
       uniqueId: null,
       hashedName: null,
       name: path.basename(file.relative),
