@@ -37,36 +37,38 @@ function setReplacedContent(fileWrapper, parentFiles = [fileWrapper]) {
   if (!fileWrapper.hashIgnoringContent) {
     fileMap.forEach(fileWrapperToMatch => {
       if (!fileWrapperToMatch.ignore) {
-        const re = new RegExp(fileWrapperToMatch.uniqueId.replace(/\./g, '\\.'), 'g');
-        const matches = contents.match(re) || [];
-        if (matches.length) {
+        Array.from(new Set([fileWrapperToMatch.uniqueId, fileWrapperToMatch.uniqueId.replace(/\//g, '\\'), fileWrapperToMatch.uniqueId.replace(/\\/g, '/')])).forEach(uniqueId => {
+          const re = new RegExp(uniqueId, 'g');
+          const matches = contents.match(re) || [];
+          if (matches.length) {
 
-          // avoid infinite recursion
-          let recursion = false;
-          for (let i = 0; i < parentFiles.length; i++) {
-            const parentFileWrapper = parentFiles[i];
-            if (parentFileWrapper.uniqueId === fileWrapperToMatch.uniqueId) {
-              const warning = `Recursion detected in file ${fileWrapperToMatch.name}: ${matches}`;
-              warnings.push(warning);
-              if (verbose) gutil.log(gutil.colors.red(`${indent}${warning}`));
-              recursion = true;
-              break;
+            // avoid infinite recursion
+            let recursion = false;
+            for (let i = 0; i < parentFiles.length; i++) {
+              const parentFileWrapper = parentFiles[i];
+              if (parentFileWrapper.uniqueId === uniqueId) {
+                const warning = `Recursion detected in file ${fileWrapperToMatch.name}: ${matches}`;
+                warnings.push(warning);
+                if (verbose) gutil.log(gutil.colors.red(`${indent}${warning}`));
+                recursion = true;
+                break;
+              }
+            }
+
+            if (!fileWrapperToMatch.hashedName && !recursion) {
+              if (verbose) gutil.log(gutil.colors.magenta(`${indent}${typo.fixed(fileWrapperToMatch.name, 35)} => ???`));
+              const _parentFiles = parentFiles.slice(0);
+              _parentFiles.push(fileWrapperToMatch);
+              setReplacedContent(fileWrapperToMatch, _parentFiles);
+            }
+
+            if (!recursion) {
+              contents = contents.replace(re, path.join(path.dirname(uniqueId), fileWrapperToMatch.hashedName).replace(/\\/g, '/'));
+              modified = true;
+              if (verbose) gutil.log(gutil.colors.white(`${indent}${typo.fixed(uniqueId, 35)} => ${fileWrapperToMatch.hashedName}`));
             }
           }
-
-          if (!fileWrapperToMatch.hashedName && !recursion) {
-            if (verbose) gutil.log(gutil.colors.magenta(`${indent}${typo.fixed(fileWrapperToMatch.name, 35)} => ???`));
-            const _parentFiles = parentFiles.slice(0);
-            _parentFiles.push(fileWrapperToMatch);
-            setReplacedContent(fileWrapperToMatch, _parentFiles);
-          }
-
-          if (!recursion) {
-            contents = contents.replace(re, path.join(path.dirname(fileWrapperToMatch.uniqueId), fileWrapperToMatch.hashedName));
-            modified = true;
-            if (verbose) gutil.log(gutil.colors.white(`${indent}${typo.fixed(fileWrapperToMatch.uniqueId, 35)} => ${fileWrapperToMatch.hashedName}`));
-          }
-        }
+        })
       }
     });
 
