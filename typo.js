@@ -1,21 +1,21 @@
-"use strict";
+"use strict"
 
 module.exports = {
-  fixed: function(string, minChars) {
-    const len = string.length;
+  fixed(string, minChars) {
+    const len = string.length
     if (len < minChars) {
-      for (let i = 0; i < minChars - len; i++ ) {
-        string += ' ';
+      for (let i = 0; i < minChars - len; i++) {
+        string += " "
       }
     }
-    return string;
+    return string
   },
-  
-  repeat: function(string, times) {
-    let out = '';
+
+  repeat(string, times) {
+    let out = ""
     for (let i = 0; i < times; i++) {
-      out += string;
+      out += string
     }
-    return out;
+    return out
   }
-};
+}

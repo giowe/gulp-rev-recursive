@@ -1,5 +1,5 @@
 {
-  "version": "0.7.0",
+  "version": "0.8.0",
   "name": "gulp-rev-recursive",
   "description": "",
   "author": {
@@ -27,6 +27,7 @@
     "url": "https://github.com/giowe/gulp-rev-recursive"
   },
   "devDependencies": {
+    "@soluzioni-futura/eslint-config-soluzioni-futura": "^1.1.0",
     "eslint": "^4.16.0"
   }
 }
